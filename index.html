@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animation Test</title>
+<style>
+  :root { --ink:#1b6b4a; --accent:#ec4899; --bg:#fdf2f8; }
+  * { box-sizing:border-box; margin:0; }
+  body { font-family:system-ui,sans-serif; background:var(--bg); color:var(--ink); }
+  .progress { position:fixed; top:0; left:0; height:4px; width:0; background:var(--accent); z-index:10; }
+  header { min-height:100vh; display:grid; place-content:center; text-align:center; padding:2rem; position:relative; overflow:hidden; }
+  .blob { position:absolute; border-radius:50%; background:var(--accent); opacity:.12; animation:float 8s ease-in-out infinite; }
+  .b1 { width:300px; height:300px; top:10%; left:8%; }
+  .b2 { width:200px; height:200px; bottom:12%; right:10%; background:var(--ink); animation-delay:-3s; }
+  @keyframes float { 50% { transform:translate(30px,-40px) scale(1.1); } }
+  h1 { font-size:clamp(2.5rem,8vw,5rem); position:relative; }
+  h1 span { display:inline-block; opacity:0; transform:translateY(40px); animation:rise .7s forwards; }
+  @keyframes rise { to { opacity:1; transform:none; } }
+  p.sub { margin-top:1rem; opacity:0; animation:rise .7s 1s forwards; position:relative; }
+  button { margin-top:2rem; padding:.9rem 1.8rem; border:0; border-radius:999px; background:var(--ink); color:#fff; font-size:1rem; cursor:pointer; transition:transform .2s, background .2s; position:relative; }
+  button:hover { transform:translateY(-4px); background:var(--accent); }
+  button:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+  section { max-width:900px; margin:0 auto; padding:5rem 1.5rem; display:grid; gap:1.5rem; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
+  .card { background:#fff; padding:2rem; border-radius:12px; box-shadow:0 4px 16px #0001; opacity:0; transform:translateY(50px); transition:opacity .7s, transform .7s; }
+  .card.show { opacity:1; transform:none; }
+  .card:hover { transform:translateY(-6px); }
+  .num { font-size:2.5rem; font-weight:700; color:var(--accent); }
+  @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; } h1 span,p.sub,.card { opacity:1; transform:none; } }
+</style>
+</head>
+<body>
+<div class="progress" id="bar"></div>
+<header>
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <h1 id="title"></h1>
+  <p class="sub">A small animation test: load, hover, and scroll effects.</p>
+  <button onclick="document.getElementById('cards').scrollIntoView({behavior:'smooth'})">Scroll down</button>
+</header>
+<section id="cards">
+  <div class="card"><div class="num" data-to="120">0</div><p>Countries reached</p></div>
+  <div class="card"><div class="num" data-to="65">0</div><p>Years of experience</p></div>
+  <div class="card"><div class="num" data-to="98">0</div><p>Happy students (%)</p></div>
+</section>
+<script>
+  const t = document.getElementById('title');
+  "Hello, Saga.".split('').forEach((c,i)=>{
+    const s=document.createElement('span'); s.textContent=c===' '?'\u00A0':c;
+    s.style.animationDelay=(i*0.06)+'s'; t.appendChild(s);
+  });
+  const bar=document.getElementById('bar');
+  addEventListener('scroll',()=>{
+    const h=document.documentElement;
+    bar.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+  });
+  const io=new IntersectionObserver(es=>es.forEach(e=>{
+    if(!e.isIntersecting) return;
+    e.target.classList.add('show');
+    const n=e.target.querySelector('.num'), to=+n.dataset.to; let v=0;
+    const step=()=>{ v+=Math.ceil(to/40); n.textContent=Math.min(v,to); if(v<to) requestAnimationFrame(step); };
+    step(); io.unobserve(e.target);
+  }),{threshold:.3});
+  document.querySelectorAll('.card').forEach((c,i)=>{ c.style.transitionDelay=(i*0.15)+'s'; io.observe(c); });
+</script>
+</body>
+</html>
